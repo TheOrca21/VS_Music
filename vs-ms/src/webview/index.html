@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src {{CSP_SOURCE}} data:; media-src {{CSP_SOURCE}}; style-src {{CSP_SOURCE}}; script-src {{CSP_SOURCE}};">
+    <link rel="stylesheet" href="{{CSS_URI}}">
+    <title>VS-Music</title>
+</head>
+<body>
+    <div id="setupView" class="setup-view">
+        <div class="setup-icon">♪</div>
+        <h2 class="setup-title">VS-Music</h2>
+        <p class="setup-desc">Load a folder to start playing your local music library.</p>
+        <p id="setupStatus" class="setup-status hidden"></p>
+        <button id="scanBtn" class="load-folder-btn">Load Folder</button>
+    </div>
+
+    <div id="playerPanel" class="player hidden">
+        <p id="libraryInfo" class="library-info"></p>
+
+        <div class="cover-art" id="coverArt">♪</div>
+
+        <div class="track-info">
+            <div class="track-title" id="trackTitle">No track playing</div>
+            <div class="track-artist" id="trackArtist">—</div>
+            <div id="playbackStatus" class="playback-status hidden"></div>
+        </div>
+
+        <div class="seek-bar-wrap">
+            <span class="time" id="currentTime">0:00</span>
+            <input type="range" id="seekBar" class="seek-bar" value="0" min="0" max="100">
+            <span class="time" id="duration">0:00</span>
+        </div>
+
+        <div class="volume-wrap">
+            <span>🔈</span>
+            <input type="range" id="volumeBar" class="seek-bar" value="80" min="0" max="100">
+            <span>🔊</span>
+        </div>
+
+        <div class="controls">
+            <button id="prevBtn" title="Previous">⏮</button>
+            <button id="playBtn" title="Play/Pause">▶</button>
+            <button id="nextBtn" title="Next">⏭</button>
+        </div>
+
+        <button id="changeFolderBtn" class="change-folder-btn">Change Folder</button>
+    </div>
+
+    <audio id="audio"></audio>
+    <script src="{{JS_URI}}"></script>
+</body>
+</html>

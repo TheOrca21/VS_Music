@@ -1,0 +1,93 @@
+{
+  "name": "vs-ms",
+  "displayName": "vs-music",
+  "description": "Play music locally inside your vs-code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.120.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:vsmusic.playerView",
+    "onCommand:vs-ms.prev",
+    "onCommand:vs-ms.next",
+    "onCommand:vs-ms.playPause",
+    "onCommand:vs-ms.stop"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vs-ms.prev",
+        "title": "VS-Music: Previous Track",
+        "icon": "$(skip-back)"
+      },
+      {
+        "command": "vs-ms.playPause",
+        "title": "VS-Music: Play / Pause",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "vs-ms.stop",
+        "title": "VS-Music: Stop",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "vs-ms.next",
+        "title": "VS-Music: Next Track",
+        "icon": "$(skip-forward)"
+      }
+    ],
+    "views": {
+      "vsmusic-sidebar": [
+        {
+          "id": "vsmusic.playerView",
+          "type": "webview",
+          "name": "Player"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vsmusic-sidebar",
+          "title": "VS-Music",
+          "icon": "$(music)"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.19.21",
+    "@types/vscode": "^1.120.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.27.3",
+    "eslint": "^9.39.3",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.10.0",
+    "music-metadata": "^11.13.0"
+  }
+}
