@@ -2,7 +2,7 @@
   "name": "vs-ms",
   "displayName": "vs-music",
   "description": "Play music locally inside your vs-code",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "SudhakarSridharan",
   "license": "MIT",
   "icon": "icon.png",
