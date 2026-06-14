@@ -15,6 +15,7 @@ export class PlayerController {
     private _tracks: Track[] = [];
     private _currentIndex = 0;
     private _isPlaying = false;
+    private _userGestureAllowed = false;
     private _folderPath: string | null = null;
     private _view?: vscode.WebviewView;
 
@@ -39,6 +40,10 @@ export class PlayerController {
         return this._tracks.length > 0;
     }
 
+    get userGestureAllowed(): boolean {
+        return this._userGestureAllowed;
+    }
+
     bindWebview(view: vscode.WebviewView): void {
         this._view = view;
         this._syncWebviewState();
@@ -56,6 +61,7 @@ export class PlayerController {
         this._currentIndex = 0;
         this._folderPath = folderPath;
         this._isPlaying = false;
+        this._userGestureAllowed = false;
 
         const view = this._view;
         if (!view) {
@@ -95,6 +101,7 @@ export class PlayerController {
         if (!this.hasLibrary) {
             return;
         }
+        this._userGestureAllowed = true;
         this.sendPlayTrack(this._currentIndex, true);
     }
 
@@ -114,11 +121,39 @@ export class PlayerController {
         if (!this.hasLibrary) {
             return;
         }
+        if (!this._userGestureAllowed) {
+            this._postToWebview({ type: 'gestureRequired' });
+            return;
+        }
         if (this._isPlaying) {
             this.pause();
         } else {
             this.play();
         }
+    }
+
+    /**
+     * Request the webview to toggle playback using the webview-side logic.
+     * This mirrors the side panel play button behavior by asking the webview
+     * to call `audio.play()` / `audio.pause()` directly, avoiding races
+     * where the extension triggers playback before the webview has loaded sources.
+     */
+    requestTogglePlayback(): void {
+        const view = this._view;
+        if (!view || !this.hasLibrary) {
+            return;
+        }
+        if (!this._userGestureAllowed) {
+            this._postToWebview({ type: 'gestureRequired' });
+            return;
+        }
+        try {
+            (view as any).show?.(false);
+        } catch {
+            // ignore if not supported
+        }
+
+        view.webview.postMessage({ type: 'toggle' });
     }
 
     previous(): void {
@@ -187,6 +222,10 @@ export class PlayerController {
                 break;
             case 'next':
                 this.next();
+                break;
+            case 'gesturePlay':
+                this._userGestureAllowed = true;
+                this._onStateChanged.fire();
                 break;
             case 'playbackState':
                 if (typeof message.isPlaying === 'boolean') {

@@ -24,7 +24,28 @@ if (!scanBtn) console.error('scanBtn not found');
 let tracks = [];
 let currentIndex = 0;
 let isPlaying = false;
+let lastLoadedTrackSrc = '';
 
+function normalizeUrl(src) {
+    try {
+        return new URL(src).href;
+    } catch {
+        return src;
+    }
+}
+
+function isSameAudioSource(trackSrc) {
+    const current = normalizeUrl(audio.src);
+    const target = normalizeUrl(trackSrc);
+    return current === target;
+}
+
+// allow cross-origin requests for webview-served local files if needed
+try {
+    audio.crossOrigin = 'anonymous';
+} catch (e) {
+    // ignore if not supported
+}
 audio.volume = 0.8;
 
 function formatTime(seconds) {
@@ -117,11 +138,41 @@ function loadTrackSource(track) {
         return false;
     }
     
-    if (audio.src !== track.src) {
-        audio.src = track.src;
-        audio.load();
+    console.log('Loading track src:', track.src);
+    if (!isSameAudioSource(track.src)) {
+        try {
+            audio.src = track.src;
+            audio.load();
+            lastLoadedTrackSrc = track.src;
+        } catch (err) {
+            console.error('Error setting audio.src or loading:', err);
+            return false;
+        }
     }
     return true;
+}
+
+async function tryPlayAudio() {
+    try {
+        await audio.play();
+        return true;
+    } catch (err) {
+        console.error('audio.play() failed:', err);
+        if (err?.name === 'NotAllowedError') {
+            const prevMuted = audio.muted;
+            audio.muted = true;
+            try {
+                await audio.play();
+                audio.muted = prevMuted;
+                return true;
+            } catch (err2) {
+                console.error('Muted audio.play() fallback failed:', err2);
+                audio.muted = prevMuted;
+                throw err2;
+            }
+        }
+        throw err;
+    }
 }
 
 async function playCurrentTrack() {
@@ -137,11 +188,15 @@ async function playCurrentTrack() {
     }
 
     try {
-        await audio.play();
+        await tryPlayAudio();
         setPlayingState(true);
         clearPlaybackError();
     } catch (err) {
-        showPlaybackError('Could not play this file. Try .mp3 format.');
+        if (err?.name === 'NotAllowedError') {
+            showPlaybackError('Playback blocked by browser policy. Click the player Play button once.');
+        } else {
+            showPlaybackError('Could not play this file. Try .mp3 format.');
+        }
         setPlayingState(false);
     }
 }
@@ -172,6 +227,8 @@ playBtn.addEventListener('click', async () => {
         console.log('No tracks loaded');
         return;
     }
+
+    vscode.postMessage({ command: 'gesturePlay' });
 
     if (isPlaying) {
         audio.pause();
@@ -234,7 +291,13 @@ audio.addEventListener('pause', () => {
 });
 
 audio.addEventListener('error', () => {
-    showPlaybackError('Audio failed to load. Use .mp3 files for best compatibility.');
+    const ae = audio.error;
+    console.error('Audio element error event:', ae);
+    let msg = 'Audio failed to load. Use .mp3 files for best compatibility.';
+    if (ae) {
+        msg += ` (code ${ae.code})`;
+    }
+    showPlaybackError(msg);
     setPlayingState(false);
 });
 
@@ -265,6 +328,27 @@ window.addEventListener('message', async (event) => {
             tracks[currentIndex] = { ...tracks[currentIndex], ...msg.track };
         }
         await loadAndMaybePlay(tracks[currentIndex], !!msg.autoplay);
+    }
+
+    if (msg.type === 'toggle') {
+        if (!tracks || !tracks.length) {
+            console.log('Toggle requested but no tracks loaded');
+            return;
+        }
+
+        if (isPlaying) {
+            audio.pause();
+            setPlayingState(false);
+            return;
+        }
+
+        await playCurrentTrack();
+        return;
+    }
+
+    if (msg.type === 'gestureRequired') {
+        showPlaybackError('Click the main panel Play button once to enable bottom controls.');
+        return;
     }
 
     if (msg.type === 'pause') {

@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { parseFile } from 'music-metadata';
 
 export interface Track {
     path: string;
@@ -65,6 +64,7 @@ async function findAudioFiles(dirPath: string): Promise<string[]> {
 
 async function parseTrack(filePath: string): Promise<Track> {
     try {
+        const { parseFile } = await import('music-metadata');
         const metadata = await parseFile(filePath);
         const tags = metadata.common;
         const format = metadata.format;

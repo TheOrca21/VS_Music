@@ -22,7 +22,7 @@
       {
         "command": "vs-ms.prev",
         "title": "VS-Music: Previous Track",
-        "icon": "$(skip-back)"
+        "icon": "$(chevron-left)"
       },
       {
         "command": "vs-ms.playPause",
@@ -37,7 +37,7 @@
       {
         "command": "vs-ms.next",
         "title": "VS-Music: Next Track",
-        "icon": "$(skip-forward)"
+        "icon": "$(chevron-right)"
       }
     ],
     "views": {
@@ -88,6 +88,8 @@
   },
   "dependencies": {
     "better-sqlite3": "^12.10.0",
-    "music-metadata": "^11.13.0"
+    "fs": "^0.0.1-security",
+    "music-metadata": "^11.13.0",
+    "path": "^0.12.7"
   }
 }

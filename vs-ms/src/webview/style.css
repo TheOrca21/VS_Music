@@ -95,17 +95,19 @@ body {
     align-items: center;
     gap: 12px;
     width: 100%;
+    max-width: 260px;
+    margin: 0 auto;
 }
 
 .cover-art {
-    width: 100%;
+    width: 180px;
     aspect-ratio: 1;
     background: var(--vscode-editor-background);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 64px;
+    font-size: 48px;
 }
 
 .track-info { text-align: center; width: 100%; }
@@ -148,24 +150,24 @@ body {
 
 .controls {
     display: flex;
-    gap: 16px;
+    gap: 10px;
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 44px;
+    min-height: 34px;
 }
 
 .controls button {
     background: none;
     border: none;
     color: var(--vscode-foreground);
-    font-size: 28px;
+    font-size: 22px;
     line-height: 1;
     cursor: pointer;
-    padding: 6px 12px;
+    padding: 6px;
     border-radius: 4px;
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 34px;
+    min-height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
