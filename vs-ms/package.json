@@ -2,9 +2,10 @@
   "name": "vs-ms",
   "displayName": "vs-music",
   "description": "Play music locally inside your vs-code",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "SudhakarSridharan",
   "license": "MIT",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/TheOrca21/VS_Music"
@@ -80,7 +81,6 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.19.21",
     "@types/vscode": "^1.120.0",
@@ -93,7 +93,6 @@
     "typescript-eslint": "^8.56.1"
   },
   "dependencies": {
-    "better-sqlite3": "^12.10.0",
     "fs": "^0.0.1-security",
     "music-metadata": "^11.13.0",
     "path": "^0.12.7"

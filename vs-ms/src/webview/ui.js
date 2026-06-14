@@ -15,16 +15,17 @@ const volumeBar = document.getElementById('volumeBar');
 const audio = document.getElementById('audio');
 
 // Debug: log if buttons exist
-if (!prevBtn) console.error('prevBtn not found');
-if (!nextBtn) console.error('nextBtn not found');
-if (!playBtn) console.error('playBtn not found');
-if (!changeFolderBtn) console.error('changeFolderBtn not found');
-if (!scanBtn) console.error('scanBtn not found');
+if (!prevBtn) { console.error('prevBtn not found'); }
+if (!nextBtn) { console.error('nextBtn not found'); }
+if (!playBtn) { console.error('playBtn not found'); }
+if (!changeFolderBtn) { console.error('changeFolderBtn not found'); }
+if (!scanBtn) { console.error('scanBtn not found'); }
 
 let tracks = [];
 let currentIndex = 0;
 let isPlaying = false;
 let lastLoadedTrackSrc = '';
+let playbackStartTime = 0;  // timestamp when current track started playing
 
 function normalizeUrl(src) {
     try {
@@ -40,12 +41,8 @@ function isSameAudioSource(trackSrc) {
     return current === target;
 }
 
-// allow cross-origin requests for webview-served local files if needed
-try {
-    audio.crossOrigin = 'anonymous';
-} catch (e) {
-    // ignore if not supported
-}
+// Note: Do NOT set audio.crossOrigin — vscode-resource does not support CORS
+// and setting it causes 401 errors on local file requests.
 audio.volume = 0.8;
 
 function formatTime(seconds) {
@@ -190,6 +187,7 @@ async function playCurrentTrack() {
     try {
         await tryPlayAudio();
         setPlayingState(true);
+        playbackStartTime = Date.now();
         clearPlaybackError();
     } catch (err) {
         if (err?.name === 'NotAllowedError') {
@@ -242,6 +240,7 @@ playBtn.addEventListener('click', async () => {
 prevBtn.addEventListener('click', () => {
     console.log('Prev clicked, tracks:', tracks?.length || 0, 'currentIndex:', currentIndex);
     if (tracks && tracks.length) {
+        logPlayEvent(false); // log skip before changing track
         vscode.postMessage({ command: 'prev' });
     }
 });
@@ -249,6 +248,7 @@ prevBtn.addEventListener('click', () => {
 nextBtn.addEventListener('click', () => {
     console.log('Next clicked, tracks:', tracks?.length || 0, 'currentIndex:', currentIndex);
     if (tracks && tracks.length) {
+        logPlayEvent(false); // log skip before changing track
         vscode.postMessage({ command: 'next' });
     }
 });
@@ -274,7 +274,10 @@ audio.addEventListener('timeupdate', () => {
 });
 
 audio.addEventListener('ended', () => {
+    logPlayEvent(true); // completed = true
     setPlayingState(false);
+    // Request recommendations based on the track that just finished
+    vscode.postMessage({ command: 'getRecommendations' });
     vscode.postMessage({ command: 'next' });
 });
 
@@ -364,4 +367,41 @@ window.addEventListener('message', async (event) => {
         resetScanButton();
         showSetup(msg.message || 'Something went wrong while scanning.');
     }
+
+    if (msg.type === 'recommendations') {
+        console.log('Recommendations received:', msg.tracks?.length || 0);
+        // Store recommendations for potential future UI display
+        // For now, log them for debugging
+        if (msg.tracks && msg.tracks.length > 0) {
+            console.log('Top recommendation:', msg.tracks[0].title, 'by', msg.tracks[0].artist);
+        }
+    }
 });
+
+/**
+ * Log a play event back to the extension for history tracking.
+ * @param {boolean} completed - true if the track played to the end
+ */
+function logPlayEvent(completed) {
+    const track = tracks[currentIndex];
+    if (!track || !track.path) {
+        return;
+    }
+    const durationPlayed = playbackStartTime > 0
+        ? Math.floor((Date.now() - playbackStartTime) / 1000)
+        : 0;
+    
+    // Only log if the user actually listened for at least 1 second
+    if (durationPlayed < 1) {
+        return;
+    }
+
+    console.log('Logging play event:', track.path, 'duration:', durationPlayed, 'completed:', completed);
+    vscode.postMessage({
+        command: 'logPlay',
+        trackPath: track.path,
+        durationPlayed: durationPlayed,
+        completed: completed
+    });
+    playbackStartTime = 0; // reset for next track
+}

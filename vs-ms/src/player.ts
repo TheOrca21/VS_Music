@@ -1,14 +1,25 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { scanFolder, Track } from './scanner';
+import { Library } from './library';
+import { getRecommendations } from './recommender';
 
 interface WebTrack {
     index: number;
+    path: string;
     title: string;
     artist: string;
     album: string;
     duration: number;
     src: string;
+}
+
+interface WebviewMessage {
+    command?: string;
+    isPlaying?: boolean;
+    trackPath?: string;
+    durationPlayed?: number;
+    completed?: boolean;
 }
 
 export class PlayerController {
@@ -44,10 +55,30 @@ export class PlayerController {
         return this._userGestureAllowed;
     }
 
-    bindWebview(view: vscode.WebviewView): void {
-        this._view = view;
-        this._syncWebviewState();
+    get folderPath(): string | null {
+        return this._folderPath;
     }
+
+    // Update bindWebview signature
+    bindWebview(view: vscode.WebviewView, library: Library): void {
+        this._view = view;
+        this._library = library;
+
+        // Load saved folder on startup silently — no picker shown
+        const savedFolder = library.getFolder();
+        if (savedFolder && this._tracks.length === 0) {
+            const tracks = library.getAllTracks();
+            if (tracks.length > 0) {
+                this._tracks = tracks;
+                this._folderPath = savedFolder;
+                // Defer sync so the webview JS has time to initialize
+                setTimeout(() => this._syncWebviewState(), 500);
+            }
+        }
+    }
+
+    // Add _library to class properties
+    private _library?: Library;
 
     setPlayingState(playing: boolean): void {
         this._isPlaying = playing;
@@ -69,18 +100,10 @@ export class PlayerController {
             return;
         }
 
-        if (folderPath) {
-            const roots = new Set<vscode.Uri>([
-                this._extensionUri,
-                vscode.Uri.file(folderPath)
-            ]);
-            for (const track of tracks) {
-                roots.add(vscode.Uri.file(path.dirname(track.path)));
-            }
-            view.webview.options = {
-                ...view.webview.options,
-                localResourceRoots: [...roots]
-            };
+        if (folderPath && tracks.length > 0 && this._library) {
+            this._library.saveFolder(folderPath);
+            this._library.upsertTracks(tracks);
+            this._library.autoCreateAlbums();
         }
 
         const webTracks = this._toWebTracks(view.webview, tracks);
@@ -191,6 +214,7 @@ export class PlayerController {
             index,
             autoplay,
             track: {
+                path: track.path,
                 title: track.title,
                 artist: track.artist,
                 album: track.album,
@@ -203,7 +227,7 @@ export class PlayerController {
         this._onStateChanged.fire();
     }
 
-    handleWebviewMessage(message: { command?: string; isPlaying?: boolean }): void {
+    handleWebviewMessage(message: WebviewMessage): void {
         switch (message.command) {
             case 'scanFolder':
                 void this.loadFolder().catch((err: unknown) => {
@@ -232,6 +256,29 @@ export class PlayerController {
                     this.setPlayingState(message.isPlaying);
                 }
                 break;
+            case 'logPlay':
+                if (this._library && message.trackPath) {
+                    this._library.logPlayEvent(
+                        message.trackPath,
+                        message.durationPlayed ?? 0,
+                        message.completed ?? false
+                    );
+                }
+                break;
+
+            case 'getRecommendations':
+                if (this._library) {
+                    const current = this.currentTrack;
+                    if (current) {
+                        const recommended = getRecommendations(
+                            current,
+                            this._library.getAllTracks(),
+                            this._library.getPlayStats()
+                        );
+                        this._postToWebview({ type: 'recommendations', tracks: recommended });
+                    }
+                }
+                break;
         }
     }
 
@@ -253,6 +300,7 @@ export class PlayerController {
     private _toWebTracks(webview: vscode.Webview, tracks: Track[]): WebTrack[] {
         return tracks.map((track, index) => ({
             index,
+            path: track.path,
             title: track.title,
             artist: track.artist,
             album: track.album,
