@@ -1,53 +1,63 @@
-# vs-ms README
+# VS-Music
 
-This is the README for your extension "vs-ms". After writing up a brief description, we recommend including the following sections.
+A simple music player extension for Visual Studio Code. Play your local music library directly from the editor sidebar.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- 🎵 **Load Music Folders** – Select any folder containing audio files to create your library
+- ⏯️ **Playback Controls** – Play, pause, next, previous, and stop playback
+- 🔊 **Volume Control** – Adjust volume with an integrated slider
+- 📊 **Seek Bar** – Jump to any point in the current track
+- 🎨 **Album Art** – Display cover art embedded in audio metadata
+- 📝 **Track Information** – View track title, artist, and duration
+- 📁 **Easy Folder Change** – Switch between music folders without reloading
 
-For example if there is an image subfolder under your extension project workspace:
+## Supported Formats
 
-\!\[feature X\]\(images/feature-x.png\)
+The extension supports the following audio formats:
+- MP3
+- MP4 / M4A
+- FLAC
+- OGG
+- WAV
+- AAC
+- WMA
+- Opus
+- WebM
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## How to Use
+
+1. **Open the VS-Music Sidebar** – Click the music icon in the activity bar
+2. **Load a Folder** – Click "Load Folder" and select a directory with audio files
+3. **Play Music** – Click the Play button (▶) to start playing
+4. **Control Playback** – Use Previous (⏮), Play/Pause (▶/⏸), and Next (⏭) buttons
+5. **Adjust Volume** – Use the volume slider (🔈–🔊)
+6. **Seek** – Drag the progress bar to jump to a position in the song
+
+## Keyboard Shortcuts
+
+Bottom controls can be accessed from the status bar once playback has been started from the main panel.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- Visual Studio Code 1.120.0 or higher
+- Local audio files (MP3, FLAC, etc.)
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- Playback must be initiated from the main panel before bottom status bar controls are enabled (browser autoplay policy)
+- Large music libraries may take a moment to scan
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Initial release with core playback features, metadata reading, and album art support.
 
 ---
+
+**Enjoy your music! 🎶**
+
 
 ## Following extension guidelines
 
