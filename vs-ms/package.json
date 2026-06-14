@@ -3,6 +3,12 @@
   "displayName": "vs-music",
   "description": "Play music locally inside your vs-code",
   "version": "0.0.1",
+  "publisher": "SudhakarSridharan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheOrca21/VS_Music"
+  },
   "engines": {
     "vscode": "^1.120.0"
   },
