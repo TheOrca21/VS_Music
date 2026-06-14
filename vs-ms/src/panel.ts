@@ -101,13 +101,13 @@ export class MusicPanelProvider implements vscode.WebviewViewProvider {
 
     private _getHtml(webview: vscode.Webview): string {
         const htmlPath = vscode.Uri.joinPath(
-            this._extensionUri, 'src', 'webview', 'index.html'
+            this._extensionUri, 'webview', 'index.html'
         );
         const cssUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, 'src', 'webview', 'style.css')
+            vscode.Uri.joinPath(this._extensionUri, 'webview', 'style.css')
         );
         const jsUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, 'src', 'webview', 'ui.js')
+            vscode.Uri.joinPath(this._extensionUri, 'webview', 'ui.js')
         );
         const cspSource = webview.cspSource;
 
